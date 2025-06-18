@@ -13,8 +13,9 @@ import pickle
 from gtts import gTTS
 import uuid
 import os
+import streamlit.components.v1 as components
 
-# ✅ MUST be the first Streamlit command
+# -------------------- Set Page Config (MUST BE FIRST) --------------------
 st.set_page_config(page_title="💼 Insurance Predictor", layout="centered", page_icon="💰")
 
 # -------------------- Load Model --------------------
@@ -78,7 +79,7 @@ with st.form("prediction_form", clear_on_submit=False):
 
     submit = st.form_submit_button("🔍 Estimate Charges")
 
-# -------------------- Prediction and Audio --------------------
+# -------------------- Prediction and Audio Output --------------------
 if submit:
     data = np.array([[age, sex_encoded, bmi, children, smoker_encoded]])
     prediction = model.predict(data)[0]
@@ -100,14 +101,20 @@ if submit:
         <div class='runner'>🏃‍♂️</div>
     """, unsafe_allow_html=True)
 
-    # Show prediction
     st.success(f"💵 Estimated Charges: **${prediction:,.2f}**")
 
-    # Generate and play audio
+    # Generate and auto-play audio
     tts = gTTS(prediction_text)
     audio_file = f"audio_{uuid.uuid4().hex}.mp3"
     tts.save(audio_file)
-    st.audio(audio_file, format="audio/mp3")
+
+    audio_html = f"""
+        <audio autoplay="true">
+            <source src="{audio_file}" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+    """
+    components.html(audio_html, height=0)
 
 # -------------------- Chatbot Section --------------------
 st.markdown("---")
