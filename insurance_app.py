@@ -10,6 +10,12 @@ Original file is located at
 import streamlit as st
 import numpy as np
 import pickle
+from gtts import gTTS
+import uuid
+import os
+
+# ✅ MUST be the first Streamlit command
+st.set_page_config(page_title="💼 Insurance Predictor", layout="centered", page_icon="💰")
 
 # -------------------- Load Model --------------------
 @st.cache_resource
@@ -18,9 +24,6 @@ def load_model():
         return pickle.load(f)
 
 model = load_model()
-
-# -------------------- Page Config --------------------
-st.set_page_config(page_title="💼 Insurance Predictor", layout="centered", page_icon="💰")
 
 # -------------------- Header & Animated Banner --------------------
 st.markdown("""
@@ -75,11 +78,13 @@ with st.form("prediction_form", clear_on_submit=False):
 
     submit = st.form_submit_button("🔍 Estimate Charges")
 
-# -------------------- Prediction and Animation --------------------
+# -------------------- Prediction and Audio --------------------
 if submit:
     data = np.array([[age, sex_encoded, bmi, children, smoker_encoded]])
     prediction = model.predict(data)[0]
+    prediction_text = f"Your estimated medical charges are ${prediction:,.2f}"
 
+    # Animation effect
     st.markdown("""
         <style>
         .runner {
@@ -95,7 +100,14 @@ if submit:
         <div class='runner'>🏃‍♂️</div>
     """, unsafe_allow_html=True)
 
+    # Show prediction
     st.success(f"💵 Estimated Charges: **${prediction:,.2f}**")
+
+    # Generate and play audio
+    tts = gTTS(prediction_text)
+    audio_file = f"audio_{uuid.uuid4().hex}.mp3"
+    tts.save(audio_file)
+    st.audio(audio_file, format="audio/mp3")
 
 # -------------------- Chatbot Section --------------------
 st.markdown("---")
