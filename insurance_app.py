@@ -15,7 +15,7 @@ import uuid
 import os
 import streamlit.components.v1 as components
 
-# -------------------- Set Page Config (MUST BE FIRST) --------------------
+# -------------------- Set Page Config --------------------
 st.set_page_config(page_title="💼 Insurance Predictor", layout="centered", page_icon="💰")
 
 # -------------------- Load Model --------------------
@@ -26,7 +26,7 @@ def load_model():
 
 model = load_model()
 
-# -------------------- Header & Animated Banner --------------------
+# -------------------- Banner & UI --------------------
 st.markdown("""
     <style>
         .banner {
@@ -51,12 +51,11 @@ st.markdown("""
             font-size: 18px;
             color: #666;
             text-align: center;
-            margin-bottom: 10px;
         }
     </style>
     <div class="title">💰 Insurance Charges Estimator</div>
     <div class="subtitle">Accurate predictions using AI - Powered by Linear Regression</div>
-    <div class="banner">🏥 Predict Medical Charges Instantly | Developed by konjam_kadhalxx | Streamlit Pro UI 🌟</div>
+    <div class="banner">🏥 Predict Medical Charges Instantly | Streamlit Pro UI 🌟</div>
 """, unsafe_allow_html=True)
 
 # -------------------- Input Form --------------------
@@ -79,86 +78,31 @@ with st.form("prediction_form", clear_on_submit=False):
 
     submit = st.form_submit_button("🔍 Estimate Charges")
 
-# -------------------- Prediction and Audio Output --------------------
+# -------------------- Prediction & Audio --------------------
 if submit:
     data = np.array([[age, sex_encoded, bmi, children, smoker_encoded]])
     prediction = model.predict(data)[0]
-    prediction_text = f"Your estimated medical charges are ${prediction:,.2f}"
+    cost = f"${prediction:,.2f}"
+    st.success(f"💵 Estimated Charges: **{cost}**")
 
-    # Animation effect
-    st.markdown("""
-        <style>
-        .runner {
-            font-size: 36px;
-            animation: run 2.5s linear forwards;
-        }
-        @keyframes run {
-            0%   { margin-left: 0%; opacity: 0; }
-            20%  { opacity: 1; }
-            100% { margin-left: 90%; opacity: 0; }
-        }
-        </style>
-        <div class='runner'>🏃‍♂️</div>
-    """, unsafe_allow_html=True)
-
-    st.success(f"💵 Estimated Charges: **${prediction:,.2f}**")
-
-    # Generate and auto-play audio
+    # Speak the cost using gTTS
+    prediction_text = f"Your estimated medical charges are {cost.replace('$', '').replace(',', '')} dollars"
     tts = gTTS(prediction_text)
-    audio_file = f"audio_{uuid.uuid4().hex}.mp3"
-    tts.save(audio_file)
+    filename = f"audio_{uuid.uuid4().hex}.mp3"
+    tts.save(filename)
 
+    # Play the audio automatically
     audio_html = f"""
-        <audio autoplay="true">
-            <source src="{audio_file}" type="audio/mpeg">
+        <audio autoplay>
+            <source src="{filename}" type="audio/mp3">
             Your browser does not support the audio element.
         </audio>
     """
     components.html(audio_html, height=0)
 
-# -------------------- Chatbot Section --------------------
-st.markdown("---")
-st.subheader("💬 Insurance ChatBot Assistant")
-
-qa_bank = {
-    "What factors affect insurance charges?": "Age, sex, BMI, number of children, and smoking status.",
-    "Is smoking really that bad for insurance?": "Yes, smokers often pay more than double in premiums.",
-    "Does having children affect cost?": "Yes, more dependents can increase costs.",
-    "Is this prediction 100% accurate?": "It's a close estimate based on real-world data.",
-    "Why is my estimate high?": "Likely due to high BMI or being a smoker.",
-    "Can I reduce charges?": "Yes, by maintaining a healthy lifestyle and quitting smoking.",
-    "Is my data stored?": "No, your data is never stored. This is a demo tool."
-}
-
-if "chat" not in st.session_state:
-    st.session_state.chat = []
-
-user_q = st.text_input("Ask your question here...", placeholder="e.g., Does BMI affect insurance cost?")
-if user_q:
-    reply = qa_bank.get(user_q.strip(), "🤖 Sorry, I don't have that info yet.")
-    st.session_state.chat.append((user_q, reply))
-
-for q, a in st.session_state.chat:
-    st.markdown(f"**🧑‍💼 You:** {q}")
-    st.markdown(f"**🤖 Bot:** {a}")
-
-# -------------------- FAQ Section --------------------
-st.markdown("---")
-with st.expander("📚 Frequently Asked Questions"):
-    st.markdown("""
-    **Q1:** _Why is my estimate high?_  
-    → Likely due to high BMI or being a smoker.
-
-    **Q2:** _Can I reduce charges?_  
-    → Yes, by maintaining a healthy lifestyle and quitting smoking.
-
-    **Q3:** _Is my data stored?_  
-    → No, your data is never stored. This is a demo tool.
-    """)
-
 # -------------------- Footer --------------------
+st.markdown("---")
 st.markdown("""
-    <hr>
     <div style='text-align: center; color: grey; font-size: 13px;'>
         Created with ❤️ by <strong>konjam_kadhalxx</strong> | Using Streamlit, Python & Machine Learning
     </div>
