@@ -2,3 +2,4 @@ streamlit
 gTTS
 numpy
 scikit-learn
+pickle5
